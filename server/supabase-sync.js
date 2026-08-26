@@ -30,6 +30,12 @@
 // Security to read/write its own row unconditionally). If either is
 // missing, every function here is a no-op and the app behaves exactly as
 // it did before this file existed - pure local file storage.
+//
+// Table name defaults to "raffle_app_state" rather than the more generic
+// "app_state", since this is meant to run against a Supabase project that
+// may already be shared with other apps/systems - a name that generic is
+// prone to colliding with an unrelated table something else already
+// created. Override with SUPABASE_TABLE if that default is still taken.
 
 const fs = require('fs');
 const path = require('path');
@@ -40,6 +46,7 @@ const DATA_FILE = path.join(DATA_DIR, 'db.json');
 // Single-row table: this app has exactly one "state" to persist, so there's
 // no meaningful id to key on other than a constant.
 const ROW_ID = 1;
+const TABLE_NAME = process.env.SUPABASE_TABLE || 'raffle_app_state';
 
 let cachedClient; // undefined = not checked yet, null = checked and unavailable
 function getClient() {
@@ -68,7 +75,7 @@ async function pullLatestIntoLocalFile() {
 
   try {
     const { data: row, error } = await supabase
-      .from('app_state')
+      .from(TABLE_NAME)
       .select('data')
       .eq('id', ROW_ID)
       .maybeSingle();
@@ -98,7 +105,7 @@ function pushToSupabaseInBackground(data) {
   if (!supabase) return;
 
   supabase
-    .from('app_state')
+    .from(TABLE_NAME)
     .upsert({ id: ROW_ID, data, updated_at: new Date().toISOString() })
     .then(({ error }) => {
       if (error) console.warn('⚠️  Supabase save failed (local data/db.json is still up to date):', error.message);
