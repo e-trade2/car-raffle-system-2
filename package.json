@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "Car raffle / lottery ticket system with admin approval panel",
   "main": "server/index.js",
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "scripts": {
     "start": "node server/index.js",
     "dev": "node server/index.js",
