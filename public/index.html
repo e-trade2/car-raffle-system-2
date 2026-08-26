@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Getachew Fikadu Jirata</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#050807;
+    --bg-card:#0e1d17;
+    --bg-well:#0a0a0a;
+    --accent-gold:#f5b731;
+    --accent-gold-deep:#c9860f;
+    --accent-green:#22c55e;
+    --accent-green-deep:#16803f;
+    --accent-pink:#ec4899;
+    --accent-red:#e5484d;
+    --accent-orange:#f97316;
+    --accent-black:#000000;
+    --text-primary:#f4f6f3;
+    --text-secondary:#8fa197;
+    --text-tertiary:#5d6d64;
+    --border-subtle:rgba(255,255,255,0.07);
+    --border-gold:rgba(245,183,49,0.35);
+    --radius-lg:20px;
+    --radius-md:14px;
+    --radius-sm:10px;
+    --font-display:'Space Grotesk', 'Noto Sans Ethiopic', sans-serif;
+    --font-body:'Inter', 'Noto Sans Ethiopic', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{ background:var(--bg-base); color:var(--text-primary); font-family:var(--font-body); -webkit-font-smoothing:antialiased; min-height:100vh; }
+  body{ padding-bottom:100px; }
+  .app{ max-width:480px; margin:0 auto; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+  .view-enter{ animation:fadeIn .28s ease; }
+
+  /* Submit-button loading state (checkout step 1, etc). A static "..."
+     label looks identical whether a request is in flight or the button is
+     just broken - on Render's free tier a cold-start wake-up can take 50+
+     seconds, so without a moving indicator users assume nothing is
+     happening and tap repeatedly. The spinner plus a delayed status
+     message makes the wait visible instead of looking stuck. */
+  @keyframes btnSpin{ to{ transform:rotate(360deg); } }
+  .btn-spinner{
+    display:inline-block; width:15px; height:15px;
+    border:2px solid rgba(0,0,0,0.25); border-top-color:currentColor;
+    border-radius:50%; animation:btnSpin .7s linear infinite;
+    vertical-align:middle; margin-right:6px;
+  }
+  .btn[disabled]{ opacity:0.85; cursor:default; }
+
+  header{ display:flex; align-items:center; justify-content:space-between; padding:14px 16px; gap:10px; }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-icon{ width:38px; height:38px; border-radius:50%; background:linear-gradient(145deg, var(--accent-gold), var(--accent-gold-deep)); display:flex; align-items:center; justify-content:center; font-size:18px; flex:none; box-shadow:0 4px 14px rgba(245,183,49,0.35); }
+  .brand-name{ font-family:var(--font-display); font-weight:800; font-size:16.5px; line-height:1.15; color:var(--accent-gold); }
+  .header-actions{ display:flex; align-items:center; gap:8px; }
+  .icon-btn{ width:38px; height:38px; border-radius:12px; background:var(--bg-card); border:1px solid var(--border-gold); display:flex; align-items:center; justify-content:center; color:var(--text-secondary); position:relative; cursor:pointer; flex:none; }
+  .icon-btn-bare{ width:38px; height:38px; border-radius:12px; background:none; border:none; display:flex; align-items:center; justify-content:center; color:var(--text-secondary); position:relative; cursor:pointer; flex:none; }
+  #notifBtn{ color:var(--accent-gold); }
+  .icon-btn .dot{ position:absolute; top:6px; right:6px; width:7px; height:7px; border-radius:50%; background:#ef4444; box-shadow:0 0 0 2px var(--bg-card); }
+  .lang-wrap{ position:relative; }
+  .lang-btn{ display:flex; align-items:center; gap:6px; background:var(--bg-card); border:1.5px solid var(--border-gold); border-radius:12px; padding:0 12px; height:38px; color:var(--text-primary); font-size:14px; font-weight:700; cursor:pointer; white-space:nowrap; }
+  .lang-btn svg{ transition:transform .15s ease; }
+  .lang-btn.open svg{ transform:rotate(180deg); }
+  .lang-menu{ position:absolute; top:44px; right:0; min-width:130px; background:#16241d; border:1px solid var(--border-subtle); border-radius:12px; overflow:hidden; z-index:40; box-shadow:0 12px 30px rgba(0,0,0,0.45); display:none; }
+  .lang-menu.show{ display:block; }
+  .lang-menu button{ display:block; width:100%; text-align:left; padding:11px 14px; background:none; border:none; color:var(--text-primary); font-size:13.5px; font-family:var(--font-body); cursor:pointer; }
+  .lang-menu button:hover, .lang-menu button.active{ background:rgba(245,183,49,0.12); color:var(--accent-gold); }
+
+  .back-row{ display:flex; align-items:center; gap:6px; padding:2px 16px 14px; color:var(--text-secondary); font-size:13.5px; font-weight:600; cursor:pointer; width:max-content; }
+
+  .hero{ padding:0 14px; }
+  .hero-media{ position:relative; border-radius:var(--radius-lg); overflow:hidden; min-height:150px; }
+  .hero-media.no-photo{ background:linear-gradient(180deg,#e9ece6 0%, #cfd6cc 55%, #aeb6a6 100%); padding:26px 10px 10px; }
+  .hero-media img{ display:block; width:100%; height:auto; }
+  .hero-media.no-photo img{ border-radius:8px; }
+  .badge-hot{ position:absolute; top:14px; left:14px; background:rgba(9,22,17,0.72); border:1px solid rgba(245,183,49,0.55); backdrop-filter:blur(4px); color:var(--accent-gold); font-size:12px; font-weight:700; padding:6px 13px; border-radius:999px; display:flex; align-items:center; gap:5px; }
+  .badge-new{ position:absolute; top:14px; left:14px; background:rgba(34,197,94,0.95); color:#04170c; font-size:12px; font-weight:700; padding:6px 14px; border-radius:999px; letter-spacing:.5px; }
+  .badge-rating{ position:absolute; top:16px; right:16px; color:#e8a812; font-size:17px; font-weight:700; letter-spacing:1px; text-shadow:0 1px 3px rgba(0,0,0,0.15); }
+  .badge-rating .rating-num{ color:var(--text-primary); font-size:12px; margin-left:2px; }
+  .car-svg{ display:block; width:100%; height:auto; }
+
+  .hero-body{ background:linear-gradient(180deg, #0d2a20 0%, #0a1310 100%); border-radius:0 0 var(--radius-lg) var(--radius-lg); margin-top:-10px; padding:18px 16px 18px; border:1px solid var(--border-subtle); border-top:none; }
+  .car-title{ font-family:var(--font-display); font-weight:800; font-size:25px; }
+  .car-sub{ color:var(--accent-green); font-weight:700; font-size:15px; margin-top:2px; }
+
+  .countdown-label{ color:var(--text-secondary); font-size:12px; font-weight:600; margin:16px 0 8px; display:flex; align-items:center; gap:5px; }
+  .countdown{ display:flex; align-items:flex-start; gap:6px; }
+  .cd-box{ flex:1; min-width:0; background:var(--bg-well); border:1px solid var(--border-gold); border-radius:var(--radius-sm); text-align:center; padding:9px 2px; }
+  .cd-num{ font-family:var(--font-display); font-weight:800; font-size:24px; color:var(--accent-gold); }
+  .cd-lbl{ font-size:10px; color:var(--text-tertiary); margin-top:2px; font-weight:500; }
+  .cd-sep{ font-family:var(--font-display); font-weight:700; font-size:20px; color:var(--text-tertiary); padding-top:8px; flex:none; }
+
+  .stats-block{ margin-top:18px; }
+  .stats-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .stats-sold{ font-size:13.5px; color:var(--text-secondary); }
+  .stats-sold b{ color:var(--text-primary); }
+  .stats-pct{ color:var(--accent-green); font-weight:700; font-size:14px; }
+  .progress-track{ height:7px; border-radius:999px; background:#0a1712; overflow:hidden; }
+  .progress-fill{ height:100%; background:linear-gradient(90deg, var(--accent-green-deep), var(--accent-green)); border-radius:999px; }
+  .stats-remaining{ font-size:12px; color:var(--text-tertiary); margin:8px 0 14px; }
+  .stats-bottom{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .participants{ display:flex; align-items:center; gap:8px; }
+  .participants .p-icon{ width:34px; height:34px; border-radius:10px; background:var(--bg-well); display:flex; align-items:center; justify-content:center; flex:none; }
+  .participants .p-lbl{ font-size:10.5px; color:var(--text-tertiary); }
+  .participants .p-num{ font-family:var(--font-display); font-weight:700; font-size:15px; margin-top:1px; }
+  .buy-ticket-btn{ display:inline-flex; align-items:center; gap:12px; background:linear-gradient(145deg, var(--accent-gold), var(--accent-gold-deep)); color:#241a02; border:none; border-radius:16px; padding:12px 26px 12px 10px; font-weight:800; font-size:16px; white-space:nowrap; cursor:pointer; box-shadow:0 6px 18px rgba(245,183,49,0.25); }
+  /* ---- Numbered step badges for the buy flow (steps 4-8) ---- */
+  .step-badge{
+    display:flex; align-items:center; justify-content:center; flex:none;
+    width:34px; height:34px; border-radius:50%;
+    background:var(--accent-black);
+    font-family:var(--font-display); font-weight:800; font-size:16px; color:var(--accent-gold);
+    box-shadow:0 2px 5px rgba(0,0,0,0.35);
+    pointer-events:none;
+  }
+
+  .panel{ padding:18px 14px 0; }
+  .buy-panel{ position:sticky; bottom:calc(88px + env(safe-area-inset-bottom)); z-index:15; background:var(--bg-base); padding-top:14px; padding-bottom:4px; border-top:1px solid var(--border-subtle); box-shadow:0 -10px 20px -6px rgba(0,0,0,0.5); }
+  .price-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .price-lbl{ font-size:12px; color:var(--text-secondary); font-weight:600; margin-bottom:3px; }
+  .price-val{ font-family:var(--font-display); font-weight:700; font-size:22px; color:var(--accent-gold); }
+  .qty{ display:flex; align-items:center; gap:14px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:999px; padding:6px 8px; }
+  .qty button{ width:30px; height:30px; border-radius:50%; border:none; cursor:pointer; background:#1c2a23; color:var(--text-primary); font-size:16px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .qty button.plus{ background:var(--accent-gold); color:#241a02; }
+  .qty-val{ font-family:var(--font-display); font-weight:700; font-size:16px; min-width:16px; text-align:center; }
+
+  .selected-numbers-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; font-size:12.5px; color:var(--text-secondary); font-weight:600; }
+  .selected-chips{ display:flex; gap:6px; flex-wrap:wrap; }
+  .chip-num{ background:var(--accent-gold); color:#241a02; font-family:var(--font-display); font-weight:700; font-size:12.5px; padding:4px 11px; border-radius:8px; }
+
+  .btn{ width:100%; border:none; border-radius:var(--radius-md); padding:13px; font-family:var(--font-body); font-weight:800; font-size:14.5px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; margin-bottom:10px; }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .btn-outline-pink{ background:rgba(245,183,49,0.08); color:var(--accent-gold); border:1.5px solid var(--accent-gold); box-shadow:0 0 26px rgba(245,183,49,0.45), 0 6px 18px rgba(245,183,49,0.25); }
+  .btn-row{ display:flex; gap:10px; }
+  .btn-row .btn{ margin-bottom:0; }
+  .btn-row .btn-outline{ flex:0.75; }
+  .btn-row .btn-gold{ flex:1.25; }
+  .btn-gold{ background:linear-gradient(145deg, var(--accent-gold), var(--accent-gold-deep)); color:#241a02; flex:1; }
+  .btn-green{ background:#252525; color:#0a0a0a; border:none; flex:1.4; box-shadow:0 6px 18px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.35); }
+  .btn-green.ready{ background:linear-gradient(145deg, #22c55e, #16a34a); color:#ffffff; border:none; box-shadow:0 0 26px rgba(34,197,94,0.45), 0 6px 18px rgba(34,197,94,0.3); }
+  .btn-green.ready .step-badge{ color:#ffffff; }
+  .btn-outline{ background:transparent; color:var(--text-secondary); border:1.5px solid var(--border-subtle); }
+
+  .tabs{ display:flex; gap:8px; padding:16px 14px 0; }
+  .tab{ padding:9px 16px; border-radius:999px; font-size:12.5px; font-weight:700; background:var(--bg-card); border:1px solid var(--border-subtle); color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:5px; }
+  .tab.active{ background:var(--accent-gold); color:#241a02; border-color:var(--accent-gold); }
+
+  .section-head{ display:flex; align-items:center; justify-content:space-between; padding:20px 14px 10px; }
+  .section-title{ font-size:15px; font-weight:700; }
+  .section-count{ font-size:12px; color:var(--text-tertiary); }
+  .empty{ margin:0 14px; padding:40px 20px; text-align:center; color:var(--text-tertiary); font-size:13px; }
+  .empty svg{ margin-bottom:10px; opacity:.5; }
+  .empty-sub{ font-size:12px; color:var(--text-tertiary); opacity:.7; margin-top:6px; line-height:1.4; }
+
+  .mini-card{ display:flex; align-items:center; gap:12px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:14px; padding:10px; margin:0 14px 10px; cursor:pointer; }
+  .mini-card-img{ width:64px; height:56px; border-radius:10px; object-fit:cover; flex:none; background:#1c2a23; }
+  .mini-card-body{ flex:1; min-width:0; }
+  .mini-card-title{ font-family:var(--font-display); font-weight:700; font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .mini-card-sub{ color:var(--accent-green); font-size:11.5px; font-weight:600; margin-top:2px; }
+  .mini-card-meta{ display:flex; align-items:center; gap:8px; margin-top:5px; font-size:11px; color:var(--text-tertiary); }
+  .mini-card-badge{ background:rgba(245,183,49,0.12); color:var(--accent-gold); font-weight:700; padding:2px 8px; border-radius:999px; font-size:10.5px; }
+
+  .bottom-nav{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(12px + env(safe-area-inset-bottom)); width:calc(100% - 24px); max-width:456px; background:#0b1712; border:1px solid var(--border-subtle); border-radius:22px; display:flex; gap:6px; padding:8px; z-index:20; box-shadow:0 14px 34px rgba(0,0,0,0.5); }
+  .nav-item{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:var(--text-tertiary); font-size:12px; font-weight:700; cursor:pointer; padding:9px 6px; border-radius:14px; border:1px solid transparent; }
+  .nav-item.active{ color:var(--accent-gold); background:rgba(245,183,49,0.12); border-color:rgba(245,183,49,0.4); box-shadow:0 0 18px rgba(245,183,49,0.3); }
+
+  .toast{ position:fixed; left:50%; bottom:96px; transform:translateX(-50%) translateY(20px); background:#16241d; color:var(--text-primary); border:1px solid var(--border-subtle); padding:12px 18px; border-radius:12px; font-size:13px; opacity:0; pointer-events:none; transition:all .25s ease; max-width:88%; text-align:center; z-index:100; box-shadow:0 12px 30px rgba(0,0,0,0.4); }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ---- Modal ---- */
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:200; display:none; align-items:flex-end; justify-content:center; }
+  .modal-backdrop.show{ display:flex; }
+  .modal{ background:#0e1712; width:100%; max-width:480px; max-height:90vh; border-radius:20px 20px 0 0; border:1px solid var(--border-subtle); border-bottom:none; display:flex; flex-direction:column; overflow:hidden; }
+  .modal-head{ display:flex; align-items:center; justify-content:space-between; padding:18px 18px 10px; }
+  .modal-title{ font-family:var(--font-display); font-weight:700; font-size:18px; }
+  .modal-sub{ color:var(--text-tertiary); font-size:12px; margin-top:2px; }
+  .modal-close{ width:34px; height:34px; border-radius:10px; background:var(--bg-card); border:1px solid var(--border-subtle); color:var(--text-secondary); display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none; }
+  .modal-body{ padding:0 18px 18px; overflow-y:auto; }
+  .modal-foot{ padding:14px 18px; border-top:1px solid var(--border-subtle); }
+
+  /* ---- Notifications panel ---- */
+  .notif-section{ margin-top:18px; }
+  .notif-section:first-child{ margin-top:4px; }
+  .notif-section-title{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:14.5px; color:var(--accent-gold); margin-bottom:10px; }
+  .notif-empty-box{ background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:14px; padding:16px; color:var(--text-tertiary); font-size:13px; text-align:center; }
+  .notif-card{ background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:14px; padding:12px 14px; display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+  .notif-card:last-child{ margin-bottom:0; }
+  .notif-icon{ width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex:none; }
+  .notif-winner-icon{ background:rgba(245,183,49,0.15); }
+  .notif-ticket-icon{ background:rgba(46,196,120,0.15); }
+  .notif-warning-icon{ background:rgba(229,72,77,0.15); }
+  .notif-update-icon{ background:rgba(88,166,255,0.15); }
+  .notif-card-msg{ font-size:12px; color:var(--text-secondary); margin-top:3px; white-space:pre-wrap; }
+  .notif-card-body{ flex:1; min-width:0; }
+  .notif-card-title{ font-weight:700; font-size:13.5px; color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .notif-card-sub{ font-size:11.5px; color:var(--text-tertiary); margin-top:2px; }
+  .notif-card-badge{ font-size:11px; font-weight:700; color:var(--accent-gold); background:rgba(245,183,49,0.12); border-radius:8px; padding:3px 8px; flex:none; }
+  /* Rich winner card (matches the "Latest Winners" notification design) */
+  .winner-card{ background:linear-gradient(180deg,rgba(245,183,49,0.10),rgba(245,183,49,0.03)); border:1px solid rgba(245,183,49,0.35); border-radius:16px; padding:16px; margin-bottom:12px; }
+  .winner-card:last-child{ margin-bottom:0; }
+  .winner-card-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .winner-card-id{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:15px; color:var(--text-primary); }
+  .winner-card-trophy{ width:38px; height:38px; border-radius:10px; background:rgba(245,183,49,0.18); display:flex; align-items:center; justify-content:center; font-size:18px; flex:none; }
+  .winner-card-field{ background:var(--bg-well); border-radius:10px; padding:9px 12px; margin-top:10px; }
+  .winner-card-field-label{ font-size:11px; color:var(--text-tertiary); margin-bottom:2px; }
+  .winner-card-field-value{ font-size:14.5px; font-weight:700; color:var(--text-primary); }
+  .winner-card-field-value.gold{ color:var(--accent-gold); }
+  .winner-card-field-value.green{ color:var(--accent-green,#2ec478); }
+  .winner-card-time{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--text-tertiary); margin-top:10px; }
+
+  .steps{ display:flex; gap:6px; padding:0 18px 14px; }
+  .step-bar{ flex:1; height:6px; border-radius:999px; background:var(--bg-well); overflow:hidden; }
+  .step-bar.done .fill, .step-bar.active .fill{ display:block; height:100%; background:var(--accent-gold); }
+  .step-bar .fill{ display:none; }
+  .step-bar.active .fill{ width:100%; }
+  .step-bar.done .fill{ width:100%; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:8px 14px; padding:10px 0; font-size:11.5px; color:var(--text-secondary); }
+  .legend-dot{ width:10px; height:10px; border-radius:3px; display:inline-block; margin-right:5px; vertical-align:middle; }
+  .num-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; max-height:340px; overflow-y:auto; padding:4px 0; }
+  .num-cell{ aspect-ratio:1; border-radius:8px; border:1.5px solid rgba(255,255,255,0.3); background:#000000; color:#e5e7eb; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; cursor:pointer; transition:transform .1s, background .15s; }
+  .num-cell:hover{ background:#1a1a1a; transform:translateY(-1px); }
+  .num-cell.taken{ background:rgba(229,72,77,0.18); color:#ff8589; border-color:rgba(229,72,77,0.5); cursor:not-allowed; }
+  .num-cell.taken:hover{ transform:none; }
+  .num-cell.pending{ background:var(--accent-gold); color:#241a02; border-color:var(--accent-gold); box-shadow:0 0 0 3px rgba(245,183,49,0.25); cursor:not-allowed; }
+  .num-cell.pending:hover{ transform:none; }
+  .num-cell.selected{ background:var(--accent-gold); color:#241a02; border-color:var(--accent-gold); box-shadow:0 0 0 3px rgba(245,183,49,0.25); }
+  .num-load-more{ text-align:center; padding:10px; color:var(--text-tertiary); font-size:12px; cursor:pointer; }
+
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:12.5px; color:var(--text-secondary); font-weight:600; margin-bottom:6px; }
+  .field input{ width:100%; background:var(--bg-well); border:1px solid var(--border-subtle); border-radius:12px; padding:13px 14px; color:var(--text-primary); font-size:14px; font-family:var(--font-body); }
+  .field input:focus{ outline:none; border-color:var(--border-gold); }
+  .field-input-wrap{ position:relative; }
+  .field-input-wrap .field-icon{ position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--text-tertiary); display:flex; pointer-events:none; }
+  .field-input-wrap input{ padding-left:42px; }
+  .btn-gold .step-badge{ background:var(--accent-black); }
+  .btn-gold .chevron{ flex:none; }
+
+  .summary-card{ background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:14px; padding:14px; margin-bottom:16px; }
+  .summary-title{ font-family:var(--font-display); font-weight:700; font-size:15px; color:var(--text-primary); margin-bottom:12px; }
+  .summary-row-stacked{ margin-bottom:10px; }
+  .ticket-numbers-wrap{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+  .ticket-num-chip{ display:inline-block; background:rgba(245,183,49,0.12); color:var(--accent-gold); font-weight:700; font-size:13px; padding:4px 10px; border-radius:999px; }
+  .input-error{ border-color:#e5484d !important; box-shadow:0 0 0 1px #e5484d; }
+  .summary-row{ display:flex; justify-content:space-between; font-size:13px; color:var(--text-secondary); margin-bottom:16px; }
+  .summary-row b{ color:var(--text-primary); }
+  .summary-total{ font-family:var(--font-display); font-weight:700; font-size:20px; color:var(--accent-gold); margin-top:8px; }
+  .summary-divider{ height:1px; background:var(--border-subtle); margin:10px 0; }
+  .summary-row-total{ margin-bottom:0; font-size:15px; }
+  .summary-row-total b{ font-family:var(--font-display); font-weight:700; font-size:19px; color:var(--accent-gold); }
+  .review-note{ display:flex; align-items:flex-start; gap:8px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); color:#f5b731; font-size:12.5px; line-height:1.5; border-radius:12px; padding:12px 14px; margin-top:14px; }
+  .order-id-chip{ display:inline-block; margin-top:8px; background:rgba(245,183,49,0.12); color:var(--accent-gold); font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; }
+
+  .bank-card{ display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--bg-card); border:1.5px solid var(--border-subtle); border-radius:14px; padding:14px; margin-bottom:10px; cursor:pointer; }
+  .bank-card.selected{ border-color:var(--accent-gold); background:rgba(245,183,49,0.06); }
+  .bank-left{ display:flex; align-items:center; gap:12px; }
+  .bank-icon{ width:38px; height:38px; border-radius:10px; background:var(--bg-well); display:flex; align-items:center; justify-content:center; font-size:16px; flex:none; }
+  .bank-name{ font-weight:700; font-size:14px; }
+  .bank-holder{ font-size:11.5px; color:var(--text-tertiary); }
+  .bank-account{ font-family:var(--font-display); font-weight:700; font-size:13px; }
+  .bank-account-wrap{ display:flex; align-items:center; gap:8px; }
+  .copy-account-btn{ display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:var(--bg-well); border:1px solid var(--border-subtle); cursor:pointer; flex:none; color:var(--text-secondary); }
+  .copy-account-btn:hover{ color:var(--accent-gold); border-color:var(--accent-gold); }
+  .copy-account-btn.copied{ color:var(--accent-gold); border-color:var(--accent-gold); }
+
+  .upload-box{ position:relative; overflow:hidden; border:2px dashed var(--border-gold); border-radius:16px; padding:34px 16px; text-align:center; cursor:pointer; margin-top:14px; color:var(--text-secondary); font-size:14px; background:rgba(245,183,49,0.05); transition:background .15s, border-color .15s; min-height:200px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .upload-box:active{ background:rgba(245,183,49,0.09); }
+  .upload-box.has-file{ border-style:solid; border-color:var(--accent-green); padding:0; }
+  .upload-icon{ width:52px; height:52px; border-radius:14px; background:rgba(245,183,49,0.14); color:var(--accent-gold); display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
+  .upload-box.has-file .upload-icon{ background:rgba(34,197,94,0.16); color:var(--accent-green); }
+  .upload-hint-text{ font-weight:700; font-size:14.5px; }
+  .upload-size-hint{ font-size:12px; color:var(--text-tertiary); margin-top:6px; }
+  .upload-preview{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:14px; }
+
+  .status-card{ text-align:center; padding:30px 20px; }
+  .status-icon{ width:64px; height:64px; border-radius:50%; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; font-size:28px; }
+  .status-icon.ok{ background:rgba(34,197,94,0.14); }
+  .status-icon.wait{ background:rgba(245,183,49,0.14); }
+  .status-icon.success{ width:84px; height:84px; background:linear-gradient(145deg,#34d399,#059669); box-shadow:0 8px 24px rgba(16,185,129,0.4); }
+  .status-icon-lg{ width:120px; height:120px; box-shadow:0 0 0 14px rgba(52,211,153,0.08), 0 10px 34px rgba(16,185,129,0.5); animation:statusPop .35s ease-out; }
+  @keyframes statusPop{ from{ transform:scale(0.6); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .status-card-success{ padding:44px 20px 12px; background:radial-gradient(ellipse at 50% 0%, rgba(16,185,129,0.14), transparent 70%); border-radius:16px; margin:-10px -6px 0; }
+  .status-title{ font-family:var(--font-display); font-weight:800; font-size:19px; color:var(--text-primary); margin-bottom:8px; }
+  .btn-success-done{ width:auto; min-width:140px; margin:0 auto 10px; padding:12px 34px; background:linear-gradient(145deg, #d7e87a, #8bc34a); color:#173a1a; box-shadow:0 4px 14px rgba(139,195,74,0.3); }
+
+  .ticket-card{ background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:14px; padding:14px; margin:0 14px 12px; }
+  .ticket-top{ display:flex; gap:12px; align-items:flex-start; margin-bottom:8px; }
+  .ticket-thumb{ width:52px; height:52px; border-radius:10px; object-fit:cover; flex-shrink:0; background:rgba(255,255,255,0.05); }
+  .ticket-status{ display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0; }
+  .ticket-status .status-dot{ width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .ticket-status .status-lbl{ font-size:9.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; white-space:nowrap; }
+  .ticket-status.confirmed .status-dot{ background:rgba(34,197,94,0.16); color:var(--accent-green); }
+  .ticket-status.confirmed .status-lbl{ color:var(--accent-green); }
+  .ticket-status.pending .status-dot, .ticket-status.awaiting_payment .status-dot{ background:rgba(245,183,49,0.16); color:var(--accent-gold); }
+  .ticket-status.pending .status-lbl, .ticket-status.awaiting_payment .status-lbl{ color:var(--accent-gold); }
+  .ticket-status.rejected .status-dot, .ticket-status.expired .status-dot{ background:rgba(229,72,77,0.16); color:var(--accent-red); }
+  .ticket-status.rejected .status-lbl, .ticket-status.expired .status-lbl{ color:var(--accent-red); }
+  .ticket-section-hdr{ display:flex; align-items:center; gap:7px; margin:18px 14px 10px; font-size:12px; font-weight:700; letter-spacing:.6px; color:var(--text-tertiary); text-transform:uppercase; }
+  .ticket-section-hdr:first-child{ margin-top:0; }
+  .ticket-nums{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .chip-num-released{ background:var(--bg-card); border:1px solid var(--border-subtle); color:var(--text-secondary); }
+  .chip-num-released em{ font-style:normal; font-weight:600; margin-left:5px; font-size:10.5px; opacity:0.85; }
+  .chip-live-available em{ color:var(--accent-green); }
+  .chip-live-taken em{ color:var(--accent-red); }
+  .chip-live-pending em{ color:var(--accent-orange); }
+
+  .phone-search{ display:flex; gap:8px; padding:0 14px 16px; align-items:stretch; }
+  .phone-search-fields{ flex:1; display:flex; background:#ffffff; border-radius:12px; overflow:hidden; }
+  .phone-search-fields input{ background:transparent; border:none; padding:13px 14px; color:#1a1a1a; font-size:14px; min-width:0; }
+  .phone-search-fields input#ticketPhoneInput{ flex:1; }
+  .phone-search-fields input#ticketCustomerIdInput{ width:90px; text-align:center; border-left:1px solid rgba(0,0,0,0.12); text-transform:uppercase; }
+  .phone-search button{ background:var(--accent-gold); color:#241a02; border:none; border-radius:12px; padding:0 18px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  .stat-row{ display:flex; gap:10px; padding:0 14px 16px; }
+  .stat-box{ flex:1; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:12px; text-align:center; padding:14px 6px; }
+  .stat-num{ font-family:var(--font-display); font-weight:700; font-size:20px; }
+  .stat-num.green{ color:var(--accent-green); }
+  .stat-num.gold{ color:var(--accent-gold); }
+  .stat-lbl{ font-size:11px; color:var(--text-tertiary); margin-top:3px; }
+
+  .profile-card{ margin:0 14px; background:linear-gradient(180deg, #0f2018 0%, #0a1712 100%); border:1px solid var(--border-subtle); border-radius:16px; padding:16px; display:flex; align-items:center; gap:14px; }
+  .profile-icon{ width:48px; height:48px; border-radius:12px; background:linear-gradient(145deg, var(--accent-gold), var(--accent-gold-deep)); display:flex; align-items:center; justify-content:center; font-size:20px; flex:none; }
+  .footer-note{ text-align:center; color:var(--text-tertiary); font-size:11px; padding:30px 20px 10px; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🏆</div>
+      <div class="brand-name">Getachew<br>Fikadu</div>
+    </div>
+    <div class="header-actions">
+      <div class="icon-btn-bare" id="globeBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9s1.3-6.4 3.8-9Z" stroke="currentColor" stroke-width="1.8"/></svg>
+      </div>
+      <div class="lang-wrap">
+        <button class="lang-btn" id="langBtn">
+          <span id="langLabel">English</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="lang-menu" id="langMenu">
+          <button data-lang="en">English</button>
+          <button data-lang="am">አማርኛ</button>
+          <button data-lang="om">Afaan Oromo</button>
+        </div>
+      </div>
+      <div class="icon-btn" id="notifBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3a6 6 0 0 0-6 6v3.5c0 .6-.2 1.2-.6 1.7L4 16.5c-.6.8 0 2 1 2h14c1 0 1.6-1.2 1-2l-1.4-2.3c-.4-.5-.6-1.1-.6-1.7V9a6 6 0 0 0-6-6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9.5 20a2.5 2.5 0 0 0 5 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span class="dot" id="notifDot" style="display:none;"></span>
+      </div>
+      <div class="icon-btn" id="themeBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ HOME VIEW ============ -->
+  <div id="homeView" class="view">
+    <div id="raffleListHome"></div>
+    <div class="empty" id="homeEmpty" style="display:none;">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a1 1 0 0 0 0 2v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a1 1 0 0 0 0-2Z" stroke="#5d6d64" stroke-width="1.6"/></svg>
+      <div id="emptyText">No active lotteries right now</div>
+      <div class="empty-sub" id="emptySubtext">Check back soon, or ask the admin to add one.</div>
+    </div>
+    <div class="tabs" id="homeTabs" style="display:none;">
+      <div class="tab active" data-filter="all">✨ <span data-i18n="tabAllLbl">All</span></div>
+      <div class="tab" data-filter="hot">🔥 <span data-i18n="tabFeaturedLbl">Featured</span></div>
+      <div class="tab" data-filter="new">📈 <span data-i18n="tabNewLbl">New</span></div>
+    </div>
+    <div class="section-head" id="ongoingHead" style="display:none;">
+      <div class="section-title" data-i18n="ongoingRafflesLbl">Ongoing raffles</div>
+      <div class="section-count"><span id="ongoingCount">0</span> <span data-i18n="availableLbl">available</span></div>
+    </div>
+    <div id="otherRafflesList"></div>
+    <div class="empty" id="otherRafflesEmpty" style="display:none;">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a1 1 0 0 0 0 2v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a1 1 0 0 0 0-2Z" stroke="#5d6d64" stroke-width="1.6"/></svg>
+      <div>No other active lotteries</div>
+      <div class="empty-sub">Add another lottery from admin panel to show it here.</div>
+    </div>
+  </div>
+
+  <!-- ============ DETAIL VIEW ============ -->
+  <div id="detailView" class="view" style="display:none;"></div>
+
+  <!-- ============ TICKETS VIEW ============ -->
+  <div id="ticketsView" class="view" style="display:none;">
+    <div class="section-head"><div class="section-title" id="myTicketsTitle">My Tickets</div></div>
+    <div class="phone-search">
+      <div class="phone-search-fields">
+        <input type="tel" id="ticketPhoneInput" placeholder="Phone number">
+        <input type="text" id="ticketCustomerIdInput" placeholder="ID" style="text-transform:uppercase;">
+      </div>
+      <button id="ticketSearchBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2.2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Search</button>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num green" id="ticketsActiveNum">0</div><div class="stat-lbl">Active</div></div>
+      <div class="stat-box"><div class="stat-num gold" id="ticketsPendingNum">0</div><div class="stat-lbl">Pending</div></div>
+      <div class="stat-box"><div class="stat-num" id="ticketsTotalNum">0</div><div class="stat-lbl">Total</div></div>
+    </div>
+    <div id="ticketsList"></div>
+    <div class="empty" id="ticketsEmpty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a1 1 0 0 0 0 2v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a1 1 0 0 0 0-2Z" stroke="#5d6d64" stroke-width="1.6"/></svg>
+      <div>No tickets purchased yet</div>
+      <div class="empty-sub">Enter your phone number to check your tickets</div>
+    </div>
+  </div>
+
+  <!-- ============ PROFILE VIEW ============ -->
+  <div id="profileView" class="view" style="display:none;">
+    <div class="profile-card">
+      <div class="profile-icon">📞</div>
+      <div>
+        <div style="font-size:12px;color:var(--text-tertiary);font-weight:600;">User Phone Number</div>
+        <div style="font-family:var(--font-display);font-weight:700;font-size:18px;" id="profilePhoneVal">Not set</div>
+      </div>
+    </div>
+    <div class="profile-card">
+      <div class="profile-icon">🆔</div>
+      <div>
+        <div style="font-size:12px;color:var(--text-tertiary);font-weight:600;">Customer ID</div>
+        <div style="font-family:var(--font-display);font-weight:700;font-size:18px;" id="profileCustomerIdVal">Not set</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="field"><label>Save your phone number</label><input type="tel" id="profilePhoneInput" placeholder="e.g. 251912345678"></div>
+      <button class="btn btn-gold" id="profileSaveBtn">Save</button>
+    </div>
+    <div class="footer-note">© 2026 Getachew Fikadu Jirata. All Rights Reserved.<br>Designed &amp; Developed by Qaroo Soft</div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" id="navHomeItem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5 12 3l9 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 9.5V21h14V9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="navHome">Home</span></div>
+    <div class="nav-item" id="navTicketsItem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a1 1 0 0 0 0 2v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a1 1 0 0 0 0-2Z" stroke="currentColor" stroke-width="1.8"/></svg><span id="navTickets">Tickets</span></div>
+    <div class="nav-item" id="navProfileItem"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span id="navProfile">Profile</span></div>
+  </div>
+
+</div>
+
+<!-- ============ NUMBER PICKER MODAL ============ -->
+<!-- ============ NOTIFICATIONS MODAL ============ -->
+<div class="modal-backdrop" id="notifModalBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="notifModalTitle">Notifications</div>
+      <div class="modal-close" id="notifModalClose">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="notif-section">
+        <div class="notif-section-title">📢 <span id="notifAnnouncementsTitle">Announcements</span></div>
+        <div id="notifAnnouncementsList"></div>
+      </div>
+      <div class="notif-section">
+        <div class="notif-section-title">🎫 <span id="notifTicketsTitle">My Tickets</span></div>
+        <div id="notifTicketsList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="numberModalBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <div><div class="modal-title" id="pickNumTitle">Pick your numbers</div><div class="modal-sub" id="pickNumSub">0/0 selected</div></div>
+      <div class="modal-close" id="numberModalClose">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="legend">
+        <span><span class="legend-dot" style="background:var(--accent-gold)"></span><span data-i18n="legendSelectedLbl">Selected</span></span>
+        <span><span class="legend-dot" style="background:var(--accent-red)"></span><span data-i18n="legendTakenLbl">Taken</span></span>
+        <span><span class="legend-dot" style="background:var(--accent-black);border:1px solid rgba(255,255,255,0.35);"></span><span data-i18n="legendFreeLbl">Free</span></span>
+      </div>
+      <div class="num-grid" id="numGrid"></div>
+    </div>
+    <div class="modal-foot">
+      <div class="summary-row" id="pickTotalRow" style="display:none;"><span id="pickTotalLbl"></span><b id="pickTotalVal"></b></div>
+      <button class="btn btn-green" id="numberModalConfirm"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CHECKOUT MODAL (3 steps) ============ -->
+<div class="modal-backdrop" id="checkoutModalBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <div><div class="modal-title" id="checkoutTitle">Confirm your order</div><div class="modal-sub" id="checkoutStepLbl">Step 1 of 4</div></div>
+      <div class="modal-close" id="checkoutModalClose">✕</div>
+    </div>
+    <div class="steps">
+      <div class="step-bar" id="stepBar1"><div class="fill"></div></div>
+      <div class="step-bar" id="stepBar2"><div class="fill"></div></div>
+      <div class="step-bar" id="stepBar3"><div class="fill"></div></div>
+    </div>
+    <div class="modal-body" id="checkoutBody"></div>
+    <div class="modal-foot" id="checkoutFoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/app.js?v=8"></script>
+</body>
+</html>
