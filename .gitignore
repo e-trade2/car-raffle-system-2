@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Secrets - never commit the real .env (SESSION_SECRET, SMTP credentials,
+# etc). .env.example stays tracked as the template.
+.env
+.env.local
+.env.*.local
+
+# Runtime data - db.json holds admin password hashes, buyer names/phone
+# numbers, and order history. It's generated on first run (see server/db.js)
+# and shouldn't ship in source control.
+data/db.json
+data/.session-secret
+data/*.tmp
+
+# User-uploaded content (payment receipts, car photos) - generated at
+# runtime, not source, and receipts may contain personal financial info.
+uploads/
+!uploads/.gitkeep
+
+# Logs
+npm-debug.log*
+*.log
+
+# OS/editor cruft
+.DS_Store
+.vscode/
+.idea/
+*.swp
