@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Getachew Fikadu Raffle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#050807; --bg-card:#0e1d17; --bg-well:#0a0a0a;
+    --accent-gold:#f5b731; --accent-gold-deep:#c9860f; --accent-green:#22c55e; --accent-red:#e5484d;
+    --text-primary:#f4f6f3; --text-secondary:#8fa197; --text-tertiary:#5d6d64;
+    --border:rgba(255,255,255,0.08);
+    --font-display:'Space Grotesk', sans-serif; --font-body:'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{ background:var(--bg-base); color:var(--text-primary); font-family:var(--font-body); min-height:100vh; }
+  .wrap{ max-width:1100px; margin:0 auto; padding:20px; }
+  .login-wrap{ max-width:360px; margin:80px auto; background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:28px; }
+  .login-wrap h1{ font-family:var(--font-display); font-size:20px; margin-bottom:18px; }
+  input, select, textarea{ width:100%; background:var(--bg-well); border:1px solid var(--border); border-radius:10px; padding:11px 13px; color:var(--text-primary); font-size:14px; font-family:var(--font-body); margin-bottom:12px; }
+  label{ display:block; font-size:12px; color:var(--text-secondary); font-weight:600; margin-bottom:5px; }
+  button{ cursor:pointer; font-family:var(--font-body); font-weight:700; border:none; border-radius:10px; padding:11px 16px; font-size:13.5px; }
+  .btn-gold{ background:linear-gradient(145deg, var(--accent-gold), var(--accent-gold-deep)); color:#241a02; width:100%; }
+  .btn-green{ background:rgba(34,197,94,0.15); color:var(--accent-green); border:1px solid rgba(34,197,94,0.4); }
+  .btn-red{ background:rgba(229,72,77,0.15); color:var(--accent-red); border:1px solid rgba(229,72,77,0.4); }
+  .btn-outline{ background:transparent; color:var(--text-secondary); border:1px solid var(--border); }
+  .err{ color:var(--accent-red); font-size:12.5px; margin-bottom:10px; display:none; }
+  .pw-wrap{ position:relative; margin-bottom:12px; }
+  .pw-wrap input{ margin-bottom:0; padding-right:42px; }
+  .pw-toggle{ position:absolute; right:6px; top:0; bottom:0; display:flex; align-items:center; justify-content:center; width:32px; background:none; border:none; padding:0; color:var(--text-secondary); cursor:pointer; }
+  .pw-toggle:hover{ color:var(--accent-gold); }
+  .pw-toggle .icon-eye-off{ display:none; }
+  .pw-toggle.showing .icon-eye{ display:none; }
+  .pw-toggle.showing .icon-eye-off{ display:block; }
+
+  header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+  header h1{ font-family:var(--font-display); font-size:20px; }
+  .tabs{ display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+  .tab-btn{ background:var(--bg-card); border:1px solid var(--border); color:var(--text-secondary); padding:9px 16px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer; }
+  .tab-btn.active{ background:var(--accent-gold); color:#241a02; border-color:var(--accent-gold); }
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+
+  .stat-cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:24px; }
+  .stat-card{ background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:16px; }
+  .stat-card .num{ font-family:var(--font-display); font-weight:700; font-size:24px; color:var(--accent-gold); }
+  .stat-card .lbl{ font-size:12px; color:var(--text-tertiary); margin-top:4px; }
+
+  table{ width:100%; border-collapse:collapse; background:var(--bg-card); border-radius:14px; overflow:hidden; }
+  th, td{ text-align:left; padding:12px 14px; border-bottom:1px solid var(--border); font-size:13px; }
+  th{ color:var(--text-tertiary); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; }
+  tr:last-child td{ border-bottom:none; }
+  .badge{ font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; display:inline-block; }
+  .badge.pending, .badge.awaiting_payment{ background:rgba(245,183,49,0.15); color:var(--accent-gold); }
+  .badge.confirmed{ background:rgba(34,197,94,0.15); color:var(--accent-green); }
+  .badge.rejected, .badge.expired, .badge.released, .badge.banned{ background:rgba(229,72,77,0.15); color:var(--accent-red); }
+  .badge.active-status{ background:rgba(34,197,94,0.15); color:var(--accent-green); }
+  .receipt-link{ color:var(--accent-gold); font-size:12.5px; text-decoration:underline; cursor:pointer; }
+  .row-actions{ display:flex; gap:6px; }
+  .row-actions button{ padding:7px 12px; font-size:12px; }
+
+  .card{ background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:18px; margin-bottom:16px; }
+  .card h3{ font-family:var(--font-display); font-size:15px; margin-bottom:14px; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .raffle-item{ display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:10px; }
+  .raffle-item:last-child{ border-bottom:none; }
+  .raffle-item .row-actions{ align-items:center; flex-wrap:wrap; }
+  .raffle-item .row-actions input[type="datetime-local"]{ width:auto; margin-bottom:0; padding:7px 10px; font-size:12px; }
+  .raffle-edit-form{ width:100%; background:var(--bg-well); border:1px solid var(--border); border-radius:10px; padding:14px; margin-top:8px; }
+  .raffle-edit-form .grid2{ margin-bottom:12px; }
+  .raffle-edit-form label{ margin-bottom:4px; }
+
+  .lightbox-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,0.8); display:none; align-items:center; justify-content:center; z-index:300; padding:20px; }
+  .lightbox-backdrop.show{ display:flex; }
+  .lightbox-backdrop img{ max-width:100%; max-height:90vh; border-radius:10px; }
+  .toolbar{ display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .empty-msg{ padding:30px; text-align:center; color:var(--text-tertiary); font-size:13px; }
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="loginWrap">
+  <h1>🏆 Admin Login</h1>
+  <div class="err" id="loginErr"></div>
+  <label>Username</label>
+  <input type="text" id="loginUser" value="admin">
+  <label>Password</label>
+  <div class="pw-wrap">
+    <input type="password" id="loginPass" placeholder="••••••••">
+    <button type="button" class="pw-toggle" data-for="loginPass" title="Show password" aria-label="Show password">
+      <svg class="icon-eye" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
+      <svg class="icon-eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10.6 5.1A11 11 0 0 1 12 5c7 0 11 7 11 7a13.5 13.5 0 0 1-3.2 3.9M6.5 6.6C3.4 8.5 1 12 1 12s4 7 11 7a10.4 10.4 0 0 0 4.2-.9M9.9 9.9a3 3 0 0 0 4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <button class="btn-gold" id="loginBtn">Log In</button>
+  <div style="text-align:center;margin-top:10px;">
+    <a href="#" id="forgotPasswordLink" style="font-size:13px;color:#9ca3af;">Forgot password?</a>
+  </div>
+  <div id="forgotWrap" style="display:none;margin-top:14px;">
+    <div class="err" id="forgotErr"></div>
+    <div id="forgotMsg" style="font-size:13px;color:#9ca3af;margin-bottom:8px;display:none;"></div>
+    <label>Username</label>
+    <input type="text" id="forgotUsername">
+    <button class="btn-gold" id="forgotSubmitBtn" style="margin-top:8px;">Send Reset Link</button>
+  </div>
+</div>
+
+<div class="wrap" id="dashWrap" style="display:none;">
+  <header>
+    <h1>🏆 Raffle Admin</h1>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <span style="font-size:13px;color:var(--text-secondary);" id="whoAmI"></span>
+      <button class="btn-outline" id="logoutBtn">Log Out</button>
+    </div>
+  </header>
+
+  <div class="stat-cards" id="statCards"></div>
+
+  <div class="tabs">
+    <div class="tab-btn active" data-panel="ordersPanel">Orders</div>
+    <div class="tab-btn" data-panel="rafflesPanel">Raffles</div>
+    <div class="tab-btn" data-panel="banksPanel">Bank Accounts</div>
+    <div class="tab-btn" data-panel="telegramPanel">Telegram Users</div>
+    <div class="tab-btn" data-panel="announcementsPanel">Announcements</div>
+    <div class="tab-btn" data-panel="settingsPanel">Settings</div>
+  </div>
+
+  <!-- ORDERS -->
+  <div class="panel active" id="ordersPanel">
+    <div class="toolbar">
+      <select id="orderStatusFilter">
+        <option value="">All statuses</option>
+        <option value="pending" selected>Pending review</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="rejected">Rejected</option>
+        <option value="awaiting_payment">Awaiting payment</option>
+        <option value="expired">Expired</option>
+        <option value="released">Released (admin-taken)</option>
+      </select>
+      <button class="btn-outline" id="refreshOrdersBtn">Refresh</button>
+    </div>
+    <table>
+      <thead><tr><th>Order</th><th>Raffle</th><th>Buyer</th><th>Numbers</th><th>Total</th><th>Receipt</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="ordersBody"></tbody>
+    </table>
+    <div class="empty-msg" id="ordersEmpty" style="display:none;">No orders found</div>
+  </div>
+
+  <!-- RAFFLES -->
+  <div class="panel" id="rafflesPanel">
+    <div class="card">
+      <h3>Create New Raffle</h3>
+      <div class="grid2">
+        <div><label>Raffle Number</label><input type="number" id="newRaffleNumber" placeholder="e.g. 3" min="1" step="1"></div>
+        <div><label>Title</label><input type="text" id="newTitle" placeholder="e.g. BYD Yuan UP"></div>
+        <div><label>Subtitle / Color</label><input type="text" id="newSubtitle" placeholder="e.g. Time Grey"></div>
+        <div><label>Ticket Price (Birr)</label><input type="number" id="newPrice" placeholder="3000"></div>
+        <div><label>Total Numbers</label><input type="number" id="newTotalNumbers" placeholder="3500"></div>
+        <div><label>Image URL (optional)</label><input type="text" id="newImageUrl" placeholder="https://..."></div>
+        <div><label>Or upload a car photo (optional)</label><input type="file" id="newImageFile" accept="image/*"></div>
+        <div id="newImagePreviewWrap" style="display:none;margin-top:6px;"><img id="newImagePreview" style="max-width:120px;border-radius:8px;display:block;"></div>
+        <div><label>Draw Date</label><input type="datetime-local" id="newDrawAt"></div>
+        <div><label>Badge</label><select id="newBadge"><option value="none">None</option><option value="new">New</option><option value="hot">Hot / Featured</option></select></div>
+        <div><label>Rating</label><input type="number" step="0.1" max="5" min="0" id="newRating" placeholder="5.0" value="5.0"></div>
+      </div>
+      <button class="btn-gold" id="createRaffleBtn" style="max-width:220px;">Create Raffle</button>
+    </div>
+    <div class="card">
+      <h3>Existing Raffles</h3>
+      <div id="rafflesList"></div>
+    </div>
+  </div>
+
+  <!-- BANKS -->
+  <div class="panel" id="banksPanel">
+    <div class="card">
+      <h3>Add Bank Account</h3>
+      <div class="grid2">
+        <div><label>Bank / Provider Name</label><input type="text" id="newBankName" placeholder="e.g. Telebirr"></div>
+        <div><label>Account Holder</label><input type="text" id="newBankHolder" placeholder="Full name"></div>
+        <div><label>Account Number</label><input type="text" id="newBankAccount" placeholder="e.g. 0912345678"></div>
+      </div>
+      <button class="btn-gold" id="addBankBtn" style="max-width:200px;">Add Bank</button>
+    </div>
+    <div class="card">
+      <h3>Existing Bank Accounts</h3>
+      <div id="banksList"></div>
+    </div>
+  </div>
+
+  <!-- TELEGRAM USERS -->
+  <div class="panel" id="telegramPanel">
+    <div class="card">
+      <h3>Shared Phone Numbers <span id="telegramTotalBadge" style="font-weight:400;color:var(--text-secondary);font-size:13px;"></span></h3>
+      <p style="font-size:13px;color:var(--text-secondary);margin:0 0 10px;">Everyone who has shared their phone number with the Telegram bot, most recent first.</p>
+      <table>
+        <thead><tr><th>Username</th><th>Full Name</th><th>Phone</th><th>Telegram ID</th><th>Shared At</th><th>Status</th><th></th></tr></thead>
+        <tbody id="telegramUsersBody"></tbody>
+      </table>
+      <div class="empty-msg" id="telegramUsersEmpty" style="display:none;">No one has shared their phone number yet</div>
+    </div>
+  </div>
+
+  <!-- ANNOUNCEMENTS -->
+  <div class="panel" id="announcementsPanel">
+    <div class="card">
+      <h3>New Announcement</h3>
+      <p style="font-size:13px;color:var(--text-secondary);margin:0 0 10px;">Shown to every visitor under the bell icon on the customer app. Use it for winner news, warnings, or general updates.</p>
+      <div class="grid2" style="margin-bottom:12px;">
+        <div><label>Title</label><input type="text" id="annTitle" placeholder="e.g. Payment method update"></div>
+        <div>
+          <label>Type</label>
+          <select id="annType">
+            <option value="update">Update</option>
+            <option value="winner">Winner</option>
+            <option value="warning">Warning</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="annWinnerFields" style="display:none;">
+        <p style="font-size:12.5px;color:var(--text-secondary);margin:0 0 10px;">These fields are shown publicly on the site, exactly as entered — double check before posting.</p>
+        <div class="grid2">
+          <div><label>Winner Name</label><input type="text" id="annWinnerName" placeholder="e.g. Kebede Nimani"></div>
+          <div><label>Phone (optional)</label><input type="text" id="annWinnerPhone" placeholder="e.g. 251994372781"></div>
+        </div>
+        <div class="grid2">
+          <div><label>Lottery</label><input type="text" id="annWinnerLottery" placeholder="e.g. Gech EV Makina Ekub"></div>
+          <div><label>Winning Ticket</label><input type="text" id="annWinnerTicket" placeholder="e.g. 3349"></div>
+        </div>
+        <div><label>Prize (optional)</label><input type="text" id="annWinnerPrize" placeholder="e.g. BYD Yuan UP"></div>
+      </div>
+
+      <div id="annMessageField" style="margin-bottom:12px;">
+        <label>Message</label>
+        <textarea id="annMessage" rows="4" placeholder="Write the announcement..." style="width:100%;resize:vertical;"></textarea>
+      </div>
+      <div id="annWinnerNoteField" style="display:none;margin-bottom:12px;">
+        <label>Extra Note (optional)</label>
+        <textarea id="annWinnerNote" rows="2" placeholder="Anything extra to add below the winner card..." style="width:100%;resize:vertical;"></textarea>
+      </div>
+
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:13px;margin-bottom:12px;">
+        <input type="checkbox" id="annNotifyTelegram" style="width:auto;">
+        Also send as a Telegram DM to everyone who has linked their phone
+      </label>
+      <div class="err" id="annErr"></div>
+      <button class="btn-gold" id="postAnnBtn" style="max-width:220px;">Post Announcement</button>
+    </div>
+    <div class="card">
+      <h3>Past Announcements</h3>
+      <div id="announcementsList"></div>
+      <div class="empty-msg" id="announcementsEmpty" style="display:none;">No announcements posted yet</div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="panel" id="settingsPanel">
+    <div class="card">
+      <h3>Change Username</h3>
+      <label>Current Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="curPassForUsername" autocomplete="current-password">
+        <button type="button" class="pw-toggle" data-for="curPassForUsername" title="Show password" aria-label="Show password">
+          <svg class="icon-eye" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
+          <svg class="icon-eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10.6 5.1A11 11 0 0 1 12 5c7 0 11 7 11 7a13.5 13.5 0 0 1-3.2 3.9M6.5 6.6C3.4 8.5 1 12 1 12s4 7 11 7a10.4 10.4 0 0 0 4.2-.9M9.9 9.9a3 3 0 0 0 4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <label>New Username</label><input type="text" id="newUsername" autocomplete="username">
+      <button class="btn-gold" id="changeUsernameBtn" style="max-width:220px;">Update Username</button>
+    </div>
+    <div class="card">
+      <h3>Change Password</h3>
+      <label>Current Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="curPass" autocomplete="current-password">
+        <button type="button" class="pw-toggle" data-for="curPass" title="Show password" aria-label="Show password">
+          <svg class="icon-eye" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
+          <svg class="icon-eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10.6 5.1A11 11 0 0 1 12 5c7 0 11 7 11 7a13.5 13.5 0 0 1-3.2 3.9M6.5 6.6C3.4 8.5 1 12 1 12s4 7 11 7a10.4 10.4 0 0 0 4.2-.9M9.9 9.9a3 3 0 0 0 4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <label>New Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="newPass" autocomplete="new-password">
+        <button type="button" class="pw-toggle" data-for="newPass" title="Show password" aria-label="Show password">
+          <svg class="icon-eye" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
+          <svg class="icon-eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10.6 5.1A11 11 0 0 1 12 5c7 0 11 7 11 7a13.5 13.5 0 0 1-3.2 3.9M6.5 6.6C3.4 8.5 1 12 1 12s4 7 11 7a10.4 10.4 0 0 0 4.2-.9M9.9 9.9a3 3 0 0 0 4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <button class="btn-gold" id="changePassBtn" style="max-width:220px;">Update Password</button>
+    </div>
+    <div class="card">
+      <h3>Recovery Email</h3>
+      <div style="font-size:12.5px;color:#9ca3af;margin-bottom:8px;" id="currentEmailLabel">Not set - you won't be able to use "Forgot password?" until you add one.</div>
+      <label>Current Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="curPassForEmail" autocomplete="current-password">
+        <button type="button" class="pw-toggle" data-for="curPassForEmail" title="Show password" aria-label="Show password">
+          <svg class="icon-eye" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
+          <svg class="icon-eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10.6 5.1A11 11 0 0 1 12 5c7 0 11 7 11 7a13.5 13.5 0 0 1-3.2 3.9M6.5 6.6C3.4 8.5 1 12 1 12s4 7 11 7a10.4 10.4 0 0 0 4.2-.9M9.9 9.9a3 3 0 0 0 4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <label>Recovery Email</label><input type="email" id="newEmail" autocomplete="email">
+      <button class="btn-gold" id="changeEmailBtn" style="max-width:220px;">Save Email</button>
+    </div>
+    <div class="card">
+      <h3>Telegram Notifications</h3>
+      <div style="font-size:12.5px;color:#9ca3af;margin-bottom:8px;" id="telegramStatusLabel">Not set - you won't be notified when a new order needs approval.</div>
+      <label>Current Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="curPassForTelegram" autocomplete="current-password">
+        <button type="button" class="pw-toggle" data-for="curPassForTelegram" title="Show password" aria-label="Show password">
+          <svg class="icon-eye" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
+          <svg class="icon-eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10.6 5.1A11 11 0 0 1 12 5c7 0 11 7 11 7a13.5 13.5 0 0 1-3.2 3.9M6.5 6.6C3.4 8.5 1 12 1 12s4 7 11 7a10.4 10.4 0 0 0 4.2-.9M9.9 9.9a3 3 0 0 0 4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <label>Telegram Username</label><input type="text" id="newTelegramUsername" placeholder="e.g. getachew_fj" autocomplete="off">
+      <button class="btn-gold" id="saveTelegramBtn" style="max-width:220px;">Save Username</button>
+      <div style="font-size:12.5px;color:#9ca3af;margin:12px 0 8px;">
+        To finish linking: open your bot in Telegram and send it any message (e.g. <code>/start</code>), then click below.
+      </div>
+      <button class="btn-gold" id="linkTelegramBtn" style="max-width:220px;">Link Telegram</button>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox-backdrop" id="lightboxBackdrop">
+  <img id="lightboxImg" src="">
+</div>
+
+<script src="/admin/admin.js"></script>
+</body>
+</html>
